@@ -41,12 +41,21 @@ for f in lint_template(tpl, valid_fields, mail_scripts):
 | MEDIUM | `unknown-mail-script` | `${mail_script:x}` where `x` doesn't exist |
 | MEDIUM | `malformed-ref` | unrecognizable `${…}` content |
 
-It understands the ServiceNow reference styles — `${current.field}`, `${field}`, `${mail_script:name}`, `${URI}` / `${URI_REF}`, and `sys_*` / event params — and only validates the ones that should map to a real field.
+It understands the ServiceNow reference styles — `${current.field}`, `${field}`, `${mail_script:name}`, `${URI}` / `${URI_REF}`, and `sys_*` / event params — and only validates the ones that should map to a real field. **Dot-walks** like `${current.caller_id.email}` are validated by their *base* field (`caller_id`), so traversing a reference doesn't trigger a false `unknown-field`.
+
+## CLI
+
+Installing the package adds a `notiflint` command — feed it a template as JSON (`{subject, body}`):
+
+```bash
+$ notiflint template.json --fields number,caller_id,priority --mail-scripts greeting
+$ cat template.json | notiflint --json          # exits 1 on a HIGH issue (CI gate)
+```
 
 ## Development
 
 ```bash
-python -m pytest -q   # 8 tests
+pip install -e .[dev] && python -m pytest -q   # 13 tests
 ```
 
 ## License

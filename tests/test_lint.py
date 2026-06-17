@@ -41,3 +41,12 @@ def test_high_findings_first():
     tpl = Template(subject="", body="${current.bogus}")
     findings = lint_template(tpl, FIELDS)
     assert findings[0].severity == "high"
+
+
+def test_dot_walk_validates_base_field_only():
+    # caller_id is a valid reference field; dot-walking it must not flag unknown-field
+    tpl = Template(subject="x ${number}", body="Hi ${current.caller_id.email}, ${caller_id.manager.name}")
+    assert "unknown-field" not in rules(lint_template(tpl, FIELDS, SCRIPTS))
+    # but a bogus base still flags
+    bad = Template(subject="x ${number}", body="${current.nope.email}")
+    assert "unknown-field" in rules(lint_template(bad, FIELDS, SCRIPTS))

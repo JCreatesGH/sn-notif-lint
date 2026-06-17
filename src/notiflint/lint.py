@@ -36,7 +36,9 @@ def lint_template(tpl: Template, valid_fields: Optional[Set[str]] = None,
 
     refs = extract_refs(full)
     for r in refs:
-        if r.is_field_ref and valid_fields and r.field not in valid_fields:
+        # Validate the base field only: a dot-walk like `caller_id.email` traverses a
+        # reference, so checking the full path against a flat field list would false-positive.
+        if r.is_field_ref and valid_fields and r.field.split(".")[0] not in valid_fields:
             out.append(Finding("high", "unknown-field",
                 f"References '{r.field}' which is not a field on the target table."))
         if r.kind == "mail_script" and mail_scripts and r.field not in mail_scripts:
