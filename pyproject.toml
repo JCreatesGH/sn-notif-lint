@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "notiflint"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lint ServiceNow notification/email templates for broken variable references before they ship blank emails."
 readme = "README.md"
 authors = [{ name = "Joshua John", email = "josh202@gmail.com" }]

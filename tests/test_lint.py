@@ -50,3 +50,34 @@ def test_dot_walk_validates_base_field_only():
     # but a bogus base still flags
     bad = Template(subject="x ${number}", body="${current.nope.email}")
     assert "unknown-field" in rules(lint_template(bad, FIELDS, SCRIPTS))
+
+
+def test_unknown_field_suggests_typo_fix():
+    tpl = Template(subject="x ${number}", body="priority is ${current.prioirty}")
+    f = next(f for f in lint_template(tpl, FIELDS, SCRIPTS) if f.rule == "unknown-field")
+    assert f.suggestion == "priority"
+    assert "Did you mean 'priority'?" in f.message
+
+
+def test_unknown_field_suggests_abbreviation_expansion():
+    tpl = Template(subject="x ${number}", body="${short_desc}")
+    f = next(f for f in lint_template(tpl, FIELDS, SCRIPTS) if f.rule == "unknown-field")
+    assert f.suggestion == "short_description"
+
+
+def test_unknown_field_no_suggestion_when_nothing_close():
+    tpl = Template(subject="x ${number}", body="${current.xyzzy_qqq}")
+    f = next(f for f in lint_template(tpl, FIELDS, SCRIPTS) if f.rule == "unknown-field")
+    assert f.suggestion is None
+    assert "Did you mean" not in f.message
+
+
+def test_unknown_mail_script_suggests():
+    tpl = Template(subject="x ${number}", body="${mail_script:greetng}")
+    f = next(f for f in lint_template(tpl, FIELDS, SCRIPTS) if f.rule == "unknown-mail-script")
+    assert f.suggestion == "greeting"
+
+
+def test_multiline_subject_flagged():
+    tpl = Template(subject="INC ${number}\nurgent", body="ok ${number}")
+    assert "multiline-subject" in rules(lint_template(tpl, FIELDS))
